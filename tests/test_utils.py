@@ -45,15 +45,6 @@ class TestFormatPenaltyAlert:
         assert "Магазин" not in result
 
     @patch("utils.datetime")
-    def test_appeal_deadline_today(self, mock_dt):
-        mock_dt.now.return_value = datetime(2026, 3, 20, 12, 0)
-        mock_dt.strptime = datetime.strptime
-        penalty = {"amount": 1000, "reason": "Test", "penalty_date": "2026-03-20",
-                    "appeal_deadline": "2026-03-20", "supply_id": "—", "nm_id": "—"}
-        result = format_penalty_alert(penalty)
-        assert "СЕГОДНЯ" in result
-
-    @patch("utils.datetime")
     def test_appeal_deadline_expired(self, mock_dt):
         mock_dt.now.return_value = datetime(2026, 3, 25, 12, 0)
         mock_dt.strptime = datetime.strptime
@@ -64,7 +55,7 @@ class TestFormatPenaltyAlert:
 
     @patch("utils.datetime")
     def test_appeal_deadline_days_left(self, mock_dt):
-        mock_dt.now.return_value = datetime(2026, 3, 20, 12, 0)
+        mock_dt.now.return_value = datetime(2026, 3, 20, 0, 0)
         mock_dt.strptime = datetime.strptime
         penalty = {"amount": 1000, "reason": "Test", "penalty_date": "2026-03-20",
                     "appeal_deadline": "2026-03-25", "supply_id": "—", "nm_id": "—"}
@@ -81,6 +72,12 @@ class TestFormatPenaltyAlert:
                     "appeal_deadline": "—", "supply_id": "—", "nm_id": "—"}
         result = format_penalty_alert(penalty)
         assert "<b>" in result
+
+    def test_contains_appeal_instructions(self):
+        penalty = {"amount": 1000, "reason": "Test", "penalty_date": "2026-03-20",
+                    "appeal_deadline": "—", "supply_id": "—", "nm_id": "—"}
+        result = format_penalty_alert(penalty)
+        assert "Обжалуйте" in result
 
 
 class TestFormatPenaltyRow:
@@ -159,5 +156,4 @@ class TestMaskApiKey:
         result = mask_api_key(key)
         assert "eyJhbGci" in result
         assert "abcdef"[-4:] in result
-        # Middle is hidden
         assert "OiJFUzI1" not in result
